@@ -1,5 +1,8 @@
 #**Extension for Yii framework**
 
+##欢迎关注neatstudio
+    @weibo : [@neatstudio](http://weibo.com/neatstudio)
+    @website: [neatstudio.com](http://neatstudio.com)
 
 ##upyun
 	
