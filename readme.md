@@ -1,11 +1,10 @@
 #**Extension for Yii framework**
 
-##欢迎关注neatstudio
-    @weibo : [@neatstudio](http://weibo.com/neatstudio)
-    @website: [neatstudio.com](http://neatstudio.com)
+##欢迎关注
+@weibo : [@neatstudio](http://weibo.com/neatstudio)   
+@website: [neatstudio.com](http://neatstudio.com)
 
 ##upyun
-	
 	@link http://upyun.com
 	@description
 		upyun API for yii
