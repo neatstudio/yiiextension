@@ -7,7 +7,6 @@
  * @version  $Id$
  * @created 13-1-31 下午2:43
  */
-
 /**
  * Class PHPFetion
  */
@@ -18,7 +17,7 @@ class PHPFetion
      */
     protected $mobile;
     protected $password;
-    public $cookieSavedPath = '';
+    protected $cookieSavedPath = '';
     protected $selfUserInfo = null;
     /**
      * @var string 无需修改
@@ -27,21 +26,16 @@ class PHPFetion
     /**
      * @param $mobile
      * @param $password
+     * @param $cookieSavedPath
      */
-    public function __construct($mobile, $password,$cookieSavedPath='')
+    public function __construct($mobile, $password, $cookieSavedPath = '')
     {
         if ($mobile === '' || $password === '') {
             return false;
         }
         $this->mobile = $mobile;
         $this->password = $password;
-        if (!empty($cookieSavedPath)) {
-            $this->cookieSavedPath = $cookieSavedPath;
-        }else{
-    		if(!$this->cookieSavedPath){
-				$this->cookieSavedPath = sys_get_temp_dir();
-			}
-		}
+        $this->setCookieSavedPath($cookieSavedPath);
         $this->autoLogin();
     }
     /**
@@ -58,7 +52,7 @@ class PHPFetion
     public function getUserInfo()
     {
         $uri = '/im5/user/selfInfo.action?t=' . str_replace(".", "", microtime(true));
-        $result = json_decode($this->_postWithCookie($uri), true);
+        $result = json_decode($this->postDataWithCookies($uri), true);
         if ($result) {
             $this->selfUserInfo = $result['userinfo'];
             return $result;
@@ -82,7 +76,7 @@ class PHPFetion
     {
         $uri = '/im5/login/loginHtml5.action?t=' . str_replace(".", "", microtime(true));
         $data = 'm=' . $this->mobile . '&pass=' . urlencode($this->password) . '&loginstatus=4';
-        $result = $this->_postWithCookie($uri, $data);
+        $result = $this->postDataWithCookies($uri, $data);
         $this->selfUserInfo = json_decode($result, true);
         if ($this->selfUserInfo) {
             //主要是只在这里取idUser，所以无所谓
@@ -114,10 +108,11 @@ class PHPFetion
      * @param $mobile
      * @param $message
      */
-    public function multiSend($mobile,$message){
-        $mobiles = array_unique(array_filter(explode(",",$mobile)));
-        foreach($mobiles as $mobile){
-            $this->send( $mobile , $message );
+    public function multiSend($mobile, $message)
+    {
+        $mobiles = array_unique(array_filter(explode(",", $mobile)));
+        foreach ($mobiles as $mobile) {
+            $this->send($mobile, $message);
         }
     }
     /**
@@ -130,7 +125,7 @@ class PHPFetion
     {
         $uri = '/im5/index/searchFriendsByQueryKey.action';
         $data = 'queryKey=' . $mobile;
-        $result = $this->_postWithCookie($uri, $data);
+        $result = $this->postDataWithCookies($uri, $data);
         $result = json_decode($result, true);
         return $result['contacts'][0]['idContact'];
     }
@@ -144,7 +139,7 @@ class PHPFetion
     {
         $uri = '/im5/chat/sendMsg.action?touserid=' . $uid;
         $data = sprintf('touserid=%s&msg=%s', $uid, $message);
-        $result = $this->_postWithCookie($uri, $data);
+        $result = $this->postDataWithCookies($uri, $data);
         return $result;
     }
     /**
@@ -157,7 +152,7 @@ class PHPFetion
         $uri = '/im5/chat/sendNewGroupShortMsg.action?t=' . str_replace(".", "", microtime(1));
 //        $uri = '/im5/chat/sendMsgToMyselfs.action';
         $data = sprintf('touserid=%s&msg=%s', $this->selfUserInfo['idUser'], $message);
-        $result = $this->_postWithCookie($uri, $data);
+        $result = $this->postDataWithCookies($uri, $data);
         return $result;
     }
     /**
@@ -166,9 +161,9 @@ class PHPFetion
      */
     protected function autoLogout()
     {
-    //    $uri = '/im5/index/logoutsubmit.action';
-    //    $result = $this->_postWithCookie($uri, '');
-    //    return $result;
+        //    $uri = '/im5/index/logoutsubmit.action';
+        //    $result = $this->_postWithCookie($uri, '');
+        //    return $result;
     }
     /**
      * 携带Cookie向f.10086.cn发送POST请求
@@ -177,19 +172,22 @@ class PHPFetion
      * @param string $data
      * @return mixed
      */
-    protected function _postWithCookie($uri, $data = '')
+    protected function postDataWithCookies($uri, $data = '')
     {
         return $this->postData($this->fetionHostUrl, ($this->fetionHostUrl . ltrim($uri, "/")), $data);
     }
     /**
+     * @description 原来的cookiefile是用PHP_URL_HOST来做唯一的文件名，这样其实出来的数据都一样，
+     *              如果用不同的用户登录，可能会造成cookie文件重复写入，不利于共用
      * @param $url
      * @param $formAction
      * @param $postVals
      * @return mixed
      */
-    function postData($url, $formAction, $postVals)
+    protected function postData($url, $formAction, $postVals)
     {
-        $cookiefile = sprintf("%s/cookie_%s.cookie.log", $this->cookieSavedPath, parse_url($url, PHP_URL_HOST));
+        //$cookiefile = sprintf("%s/cookie_%s.cookie.log", $this->getCookieSavedPath(), parse_url($url, PHP_URL_HOST));
+        $cookiefile = sprintf("%s/cookie_%s.cookie.log", $this->getCookieSavedPath(), $this->mobile); //直接采用mobile来当成唯一的文件名。
         $ch = curl_init();
         $header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
         $header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
@@ -217,5 +215,24 @@ class PHPFetion
         $res = curl_exec($ch); //我这里并没有取返回值，主要是把cookie记录下来
         curl_close($ch);
         return $res;
+    }
+    /**
+     * @param $cookieSavedPath
+     */
+    public function setCookieSavedPath($cookieSavedPath)
+    {
+        if ($cookieSavedPath && is_string($cookieSavedPath)) {
+            $this->cookieSavedPath = $cookieSavedPath;
+        }
+    }
+    /**
+     * @return string
+     */
+    public function getCookieSavedPath()
+    {
+        if (!$this->cookieSavedPath) {
+            $this->cookieSavedPath = sys_get_temp_dir();
+        }
+        return $this->cookieSavedPath;
     }
 }
