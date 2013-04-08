@@ -1,6 +1,6 @@
 <?php
 /**
- * fetion.php
+ * PHPFetion.php
  *
  * @category
  * @author   gouki <gouki.xiao@gmail.com>
@@ -27,6 +27,8 @@ class PHPFetion
      * @param $mobile
      * @param $password
      * @param $cookieSavedPath
+     * @description 接受 nickfan 的branch ，将cookieSavedPath当成参数
+     *              nickfan : https://github.com/nickfan
      */
     public function __construct($mobile, $password, $cookieSavedPath = '')
     {
