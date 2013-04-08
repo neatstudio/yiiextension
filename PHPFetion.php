@@ -7,7 +7,7 @@
  * @version  $Id$
  * @created 13-1-31 下午2:43
  */
-define('COOKIE_SAVED_PATH', Yii::app()->getRuntimePath());
+
 /**
  * Class PHPFetion
  */
@@ -28,16 +28,20 @@ class PHPFetion
      * @param $mobile
      * @param $password
      */
-    public function __construct($mobile, $password)
+    public function __construct($mobile, $password,$cookieSavedPath='')
     {
         if ($mobile === '' || $password === '') {
             return false;
         }
         $this->mobile = $mobile;
         $this->password = $password;
-        if (!$this->cookieSavedPath) {
-            $this->cookieSavedPath = COOKIE_SAVED_PATH;
-        }
+        if (!empty($cookieSavedPath)) {
+            $this->cookieSavedPath = $cookieSavedPath;
+        }else{
+    		if(!$this->cookieSavedPath){
+				$this->cookieSavedPath = sys_get_temp_dir();
+			}
+		}
         $this->autoLogin();
     }
     /**
@@ -215,5 +219,3 @@ class PHPFetion
         return $res;
     }
 }
-
-?>
